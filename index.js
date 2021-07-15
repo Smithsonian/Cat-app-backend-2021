@@ -9,6 +9,9 @@ import errorHandler from './middlewares/errorHandler.js';
 
 const app = express();
 const port = process.env.PORT || 5000;
+
+app.use(express.json());
+app.set('etag', false);
 app.use(morgan('tiny'));
 app.use(cors({ origin: process.env.ORIGIN }));
 app.use('/auth', authRouter);

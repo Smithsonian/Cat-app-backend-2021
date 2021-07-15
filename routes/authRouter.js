@@ -6,8 +6,6 @@ import { signUpBody, signInBody } from '../joi/schemas.js';
 
 const authRouter = express.Router();
 
-authRouter.use(express.json());
-
 authRouter.post('/signup', validateJOI(signUpBody), signUp);
 authRouter.post('/signin', validateJOI(signInBody), signIn);
 authRouter.get('/verify-session', verifyToken, approveSession);
