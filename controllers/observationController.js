@@ -106,7 +106,7 @@ export const getSingleObservation = asyncHandler(async (req, res) => {
 export const updateObservation = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const filter = { _id: id };
-  const update = { ...req.body, forReview: true };
+  const update = { ...req.body };
   const options = {
     new: true
   };
