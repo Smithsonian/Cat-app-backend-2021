@@ -102,3 +102,14 @@ export const getSingleObservation = asyncHandler(async (req, res) => {
   const observation = await Observation.findById(id);
   res.status(200).json({ observation });
 });
+
+export const updateObservation = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const filter = { _id: id };
+  const update = { ...req.body, forReview: true };
+  const options = {
+    new: true
+  };
+  const updatedObservation = await Observation.findOneAndUpdate(filter, update, options);
+  res.status(200).json({ updatedObservation });
+});
