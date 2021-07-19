@@ -4,12 +4,17 @@ import Observation from '../models/Observation.js';
 import Specimen from '../models/Specimen.js';
 
 export const getObservations = asyncHandler(async (req, res) => {
+  const { role } = req.user;
   const { minLon, maxLon, minLat, maxLat } = req.body;
   const reqQuery = { ...req.body };
   const removeFields = ['minLon', 'maxLon', 'minLat', 'maxLat'];
   removeFields.forEach(param => delete reqQuery[param]);
 
   let queryStr = JSON.stringify(reqQuery).replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
+
+  if (role === 'user') {
+    queryStr = JSON.stringify({ ...JSON.parse(queryStr), forReview: false });
+  }
 
   if (minLon && maxLon && minLat && maxLon) {
     const range = {
@@ -146,5 +151,11 @@ export const removeIdentification = asyncHandler(async (req, res) => {
     { $unset: { specimen: found.specimen }, forReview: false },
     { new: true }
   );
+  await Specimen.findOneAndUpdate(
+    { _id: found.specimen },
+    { $pull: { matches: found._id } },
+    { new: true }
+  );
+  await Specimen.deleteMany({ matches: { $size: 0 } });
   res.status(200).json(updatedCat);
 });

@@ -26,7 +26,14 @@ const observationSchema = new Schema({
   specimen: { type: ObjectId, ref: 'Specimen' },
   status: {
     type: String,
-    enum: ['Unknown', 'Colony/Community/Notched ear', 'Euthanized', 'House', 'Shelter', 'Stray/Wild'],
+    enum: [
+      'Unknown',
+      'Colony/Community/Notched ear',
+      'Euthanized',
+      'House',
+      'Shelter',
+      'Stray/Wild'
+    ],
     default: 'Unknown'
   },
   pattern: {
@@ -55,6 +62,15 @@ const observationSchema = new Schema({
     type: String,
     enum: ['Unknown', 'Black', 'Brown', 'Buff/Tan', 'Gray', 'Orange', 'White'],
     default: 'Unknown'
+  },
+  captureSide: {
+    type: [
+      {
+        type: String,
+        enum: ['Left', 'Right', 'Bottom', 'Top', 'Front', 'Rear']
+      }
+    ],
+    default: []
   },
   images: { type: [{ image_id: { type: String, required: true } }], required: true }
 });
