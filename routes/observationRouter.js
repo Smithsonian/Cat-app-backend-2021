@@ -4,7 +4,8 @@ import {
   getObservationsPage,
   getSingleObservation,
   updateObservation,
-  createNewCat
+  createNewCat,
+  removeIdentification
 } from '../controllers/observationController.js';
 import verifyToken from '../middlewares/verifyToken.js';
 
@@ -14,6 +15,7 @@ observationRouter.post('/', verifyToken, getObservations);
 observationRouter.get('/:id', verifyToken, getSingleObservation);
 observationRouter.patch('/:id', verifyToken, updateObservation);
 observationRouter.post('/:id/newcat', verifyToken, createNewCat);
+observationRouter.post('/:id/removeid', verifyToken, removeIdentification);
 
 observationRouter.get('/page/', verifyToken, getObservationsPage);
 

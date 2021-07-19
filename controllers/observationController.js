@@ -24,7 +24,9 @@ export const getObservations = asyncHandler(async (req, res) => {
         $geoWithin: {
           $geometry: {
             type: 'Polygon',
-            coordinates: [[range.topLeft, range.topRight, range.bottomRight, range.bottomLeft, range.topLeft]]
+            coordinates: [
+              [range.topLeft, range.topRight, range.bottomRight, range.bottomLeft, range.topLeft]
+            ]
           }
         }
       }
@@ -59,7 +61,9 @@ export const getObservationsPage = asyncHandler(async (req, res) => {
         $geoWithin: {
           $geometry: {
             type: 'Polygon',
-            coordinates: [[range.topLeft, range.topRight, range.bottomRight, range.bottomLeft, range.topLeft]]
+            coordinates: [
+              [range.topLeft, range.topRight, range.bottomRight, range.bottomLeft, range.topLeft]
+            ]
           }
         }
       }
@@ -115,13 +119,32 @@ export const updateObservation = asyncHandler(async (req, res) => {
 export const createNewCat = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const found = await Observation.findById(id);
-  if (!found) throw new ErrorResponse('Cannot create a new specimen on non existent observation', 404);
+  if (!found)
+    throw new ErrorResponse('Cannot create a new specimen on non existent observation', 404);
   if (found.specimen)
     throw new ErrorResponse(
       'This observation is already linked to a specimen, delete the identification and try again',
       401
     );
   const { _id } = await Specimen.create({ matches: [id] });
-  const updatedCat = await found.update({ specimen: _id, forReview: true }, { new: true });
+  const updatedCat = await Observation.findOneAndUpdate(
+    { _id: id },
+    { specimen: _id, forReview: true },
+    { new: true }
+  );
+  res.status(200).json(updatedCat);
+});
+
+export const removeIdentification = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const found = await Observation.findById(id);
+  if (!found) throw new ErrorResponse('Observation does not exist', 404);
+  if (!found.specimen)
+    throw new ErrorResponse('There is no active identification for this observation', 401);
+  const updatedCat = await Observation.findOneAndUpdate(
+    { _id: id },
+    { $unset: { specimen: found.specimen }, forReview: false },
+    { new: true }
+  );
   res.status(200).json(updatedCat);
 });
