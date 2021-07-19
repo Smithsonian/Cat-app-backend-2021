@@ -1,5 +1,9 @@
 import mongoose from 'mongoose';
-const { Schema, model } = mongoose;
+const {
+  Schema,
+  model,
+  Types: { ObjectId }
+} = mongoose;
 
 const observationSchema = new Schema({
   project_id: { type: String, required: true },
@@ -19,16 +23,10 @@ const observationSchema = new Schema({
   },
   date_time_original: { type: Date, required: true },
   forReview: { type: Boolean, default: false },
+  specimen: { type: ObjectId, ref: 'Specimen' },
   status: {
     type: String,
-    enum: [
-      'Unknown',
-      'Colony/Community/Notched ear',
-      'Euthanized',
-      'House',
-      'Shelter',
-      'Stray/Wild'
-    ],
+    enum: ['Unknown', 'Colony/Community/Notched ear', 'Euthanized', 'House', 'Shelter', 'Stray/Wild'],
     default: 'Unknown'
   },
   pattern: {

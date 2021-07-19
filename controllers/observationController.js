@@ -1,5 +1,7 @@
 import asyncHandler from '../middlewares/asyncHandler.js';
+import ErrorResponse from '../utils/ErrorResponse.js';
 import Observation from '../models/Observation.js';
+import Specimen from '../models/Specimen.js';
 
 export const getObservations = asyncHandler(async (req, res) => {
   const { minLon, maxLon, minLat, maxLat } = req.body;
@@ -22,9 +24,7 @@ export const getObservations = asyncHandler(async (req, res) => {
         $geoWithin: {
           $geometry: {
             type: 'Polygon',
-            coordinates: [
-              [range.topLeft, range.topRight, range.bottomRight, range.bottomLeft, range.topLeft]
-            ]
+            coordinates: [[range.topLeft, range.topRight, range.bottomRight, range.bottomLeft, range.topLeft]]
           }
         }
       }
@@ -59,9 +59,7 @@ export const getObservationsPage = asyncHandler(async (req, res) => {
         $geoWithin: {
           $geometry: {
             type: 'Polygon',
-            coordinates: [
-              [range.topLeft, range.topRight, range.bottomRight, range.bottomLeft, range.topLeft]
-            ]
+            coordinates: [[range.topLeft, range.topRight, range.bottomRight, range.bottomLeft, range.topLeft]]
           }
         }
       }
@@ -112,4 +110,18 @@ export const updateObservation = asyncHandler(async (req, res) => {
   };
   const updatedObservation = await Observation.findOneAndUpdate(filter, update, options);
   res.status(200).json({ updatedObservation });
+});
+
+export const createNewCat = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const found = await Observation.findById(id);
+  if (!found) throw new ErrorResponse('Cannot create a new specimen on non existent observation', 404);
+  if (found.specimen)
+    throw new ErrorResponse(
+      'This observation is already linked to a specimen, delete the identification and try again',
+      401
+    );
+  const { _id } = await Specimen.create({ matches: [id] });
+  const updatedCat = await Observation.findOneAndUpdate({ _id: id }, { specimen: _id, forReview: true }, { new: true });
+  res.status(200).json(updatedCat);
 });

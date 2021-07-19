@@ -3,15 +3,18 @@ import {
   getObservations,
   getObservationsPage,
   getSingleObservation,
-  updateObservation
+  updateObservation,
+  createNewCat
 } from '../controllers/observationController.js';
 import verifyToken from '../middlewares/verifyToken.js';
 
 const observationRouter = express.Router();
 
 observationRouter.post('/', verifyToken, getObservations);
-observationRouter.get('/page/', verifyToken, getObservationsPage);
 observationRouter.get('/:id', verifyToken, getSingleObservation);
 observationRouter.patch('/:id', verifyToken, updateObservation);
+observationRouter.post('/:id/newcat', verifyToken, createNewCat);
+
+observationRouter.get('/page/', verifyToken, getObservationsPage);
 
 export default observationRouter;
