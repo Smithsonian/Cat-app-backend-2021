@@ -122,6 +122,6 @@ export const createNewCat = asyncHandler(async (req, res) => {
       401
     );
   const { _id } = await Specimen.create({ matches: [id] });
-  const updatedCat = await Observation.findOneAndUpdate({ _id: id }, { specimen: _id, forReview: true }, { new: true });
+  const updatedCat = await found.update({ specimen: _id, forReview: true }, { new: true });
   res.status(200).json(updatedCat);
 });
