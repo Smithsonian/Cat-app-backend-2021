@@ -25,11 +25,13 @@ export const getObservations = asyncHandler(async (req, res) => {
   const removeFields = ['minLon', 'maxLon', 'minLat', 'maxLat'];
   removeFields.forEach(param => delete reqQuery[param]);
 
-  let queryStr = JSON.stringify(reqQuery).replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
+  let queryStr = JSON.stringify(reqQuery).replace(
+    /\b(gt|gte|lt|lte|in|exists|geoWithin|centerSphere)\b/g,
+    match => `$${match}`
+  );
 
-  console.log(role);
   if (role === 'user') {
-    queryStr = JSON.stringify({ ...JSON.parse(queryStr), forReview: false });
+    queryStr = JSON.stringify({ ...JSON.parse(queryStr) });
   }
 
   if (minLon && maxLon && minLat && maxLon) {
