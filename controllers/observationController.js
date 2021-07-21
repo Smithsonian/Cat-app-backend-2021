@@ -3,6 +3,21 @@ import ErrorResponse from '../utils/ErrorResponse.js';
 import Observation from '../models/Observation.js';
 import Specimen from '../models/Specimen.js';
 
+export const getDeployments = asyncHandler(async (req, res) => {
+  const deploymentsAggregation = await Observation.aggregate([
+    {
+      $group: {
+        _id: { deployment_id: '$deployment_id', location: '$location' }
+      }
+    }
+  ]);
+  const deployments = deploymentsAggregation.map(({ _id: { deployment_id, location } }) => ({
+    deployment_id,
+    location
+  }));
+  res.status(200).json({ deployments });
+});
+
 export const getObservations = asyncHandler(async (req, res) => {
   const { role } = req.user;
   const { minLon, maxLon, minLat, maxLat } = req.body;
@@ -12,6 +27,7 @@ export const getObservations = asyncHandler(async (req, res) => {
 
   let queryStr = JSON.stringify(reqQuery).replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
 
+  console.log(role);
   if (role === 'user') {
     queryStr = JSON.stringify({ ...JSON.parse(queryStr), forReview: false });
   }
