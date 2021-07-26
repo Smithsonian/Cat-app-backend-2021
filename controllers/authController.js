@@ -27,7 +27,7 @@ export const createUser = asyncHandler(async (req, res) => {
     from: process.env.STMP_USER,
     to: email,
     subject: `Your new user for ${process.env.APP_NAME}`,
-    html: `<div>Hello, ${name}.</br> An user account for ${process.env.APP_NAME} was created for you.</br></br>Your username is your email and the password is: ${password}</div>`
+    html: `<div>Hello, ${name}.</br> An user account for <a href='${process.env.APP_URL}' target='_blank' rel=“noopener noreferrer“>${process.env.APP_NAME}</a> was created for you.</br></br>Your username is your email and the password is: ${password}</div>`
   };
   await transporter.sendMail(mailOptions);
   res.status(201).json({
