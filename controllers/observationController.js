@@ -23,7 +23,7 @@ export const getCounters = asyncHandler(async (req, res) => {
   const total = await Observation.countDocuments();
   const forReview = await Observation.countDocuments({ forReview: true });
   const notCat = await Observation.countDocuments({ isCat: false });
-  res.status(200).json({ deployments: deployments.length, total, forReview, notCat });
+  res.status(200).json({ counters: { deployments: deployments.length, total, forReview, notCat } });
 });
 
 export const getObservations = asyncHandler(async (req, res) => {
