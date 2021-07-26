@@ -57,7 +57,6 @@ export const getObservations = asyncHandler(async (req, res) => {
 
     queryStr = JSON.stringify({ ...JSON.parse(queryStr), ...geo });
   }
-  console.log(queryStr);
   const observations = await Observation.find(JSON.parse(queryStr));
   res.status(200).json({ observations });
 });
