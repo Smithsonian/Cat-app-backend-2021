@@ -21,7 +21,7 @@ export const getDeployments = asyncHandler(async (req, res) => {
 export const getObservations = asyncHandler(async (req, res) => {
   const { role } = req.user;
   const { minLon, maxLon, minLat, maxLat } = req.body;
-  const reqQuery = { ...req.body, isCat: true };
+  const reqQuery = { ...req.body };
   const removeFields = ['minLon', 'maxLon', 'minLat', 'maxLat'];
   removeFields.forEach(param => delete reqQuery[param]);
 
@@ -31,7 +31,7 @@ export const getObservations = asyncHandler(async (req, res) => {
   );
 
   if (role === 'user') {
-    queryStr = JSON.stringify({ ...JSON.parse(queryStr) });
+    queryStr = JSON.stringify({ ...JSON.parse(queryStr), isCat: true });
   }
 
   if (minLon && maxLon && minLat && maxLon) {
@@ -166,7 +166,7 @@ export const removeIdentification = asyncHandler(async (req, res) => {
     throw new ErrorResponse('There is no active identification for this observation', 401);
   const updatedCat = await Observation.findOneAndUpdate(
     { _id: id },
-    { $unset: { specimen: found.specimen }, forReview: false },
+    { $unset: { specimen: found.specimen }, forReview: false, reasonReview: 'None' },
     { new: true }
   );
   await Specimen.findOneAndUpdate(
