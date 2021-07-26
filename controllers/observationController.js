@@ -21,7 +21,7 @@ export const getDeployments = asyncHandler(async (req, res) => {
 export const getObservations = asyncHandler(async (req, res) => {
   const { role } = req.user;
   const { minLon, maxLon, minLat, maxLat } = req.body;
-  const reqQuery = { ...req.body };
+  const reqQuery = { ...req.body, isCat: true };
   const removeFields = ['minLon', 'maxLon', 'minLat', 'maxLat'];
   removeFields.forEach(param => delete reqQuery[param]);
 
@@ -152,7 +152,7 @@ export const createNewCat = asyncHandler(async (req, res) => {
   const { _id } = await Specimen.create({ matches: [id] });
   const updatedCat = await Observation.findOneAndUpdate(
     { _id: id },
-    { specimen: _id, forReview: true },
+    { specimen: _id, forReview: true, reasonReview: 'New cat' },
     { new: true }
   );
   res.status(200).json(updatedCat);

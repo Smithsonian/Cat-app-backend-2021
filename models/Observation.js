@@ -23,6 +23,11 @@ const observationSchema = new Schema({
   },
   date_time_original: { type: Date, required: true },
   forReview: { type: Boolean, default: false },
+  reasonReview: {
+    type: String,
+    enum: ['None', 'Not cat', 'New cat', 'New match'],
+    default: 'None'
+  },
   specimen: { type: ObjectId, ref: 'Specimen' },
   status: {
     type: String,
@@ -72,6 +77,7 @@ const observationSchema = new Schema({
     ],
     default: []
   },
+  isCat: { type: Boolean, default: true },
   images: { type: [{ image_id: { type: String, required: true } }], required: true }
 });
 
