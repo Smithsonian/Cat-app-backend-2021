@@ -53,6 +53,11 @@ export const signIn = asyncHandler(async (req, res) => {
   res.status(201).json({ token });
 });
 
+export const getUsers = asyncHandler(async (req, res) => {
+  const users = await User.find({ role: { $ne: 'master' } });
+  res.status(200).json({ users });
+});
+
 export const approveSession = asyncHandler(async (req, res) => {
   res.json({ success: 'Valid token', user: req.user });
 });

@@ -18,6 +18,14 @@ export const getDeployments = asyncHandler(async (req, res) => {
   res.status(200).json({ deployments });
 });
 
+export const getCounters = asyncHandler(async (req, res) => {
+  const deployments = await Observation.distinct('deployment_id');
+  const total = await Observation.countDocuments();
+  const forReview = await Observation.countDocuments({ forReview: true });
+  const notCat = await Observation.countDocuments({ isCat: false });
+  res.status(200).json({ deployments: deployments.length, total, forReview, notCat });
+});
+
 export const getObservations = asyncHandler(async (req, res) => {
   const { role } = req.user;
   const { minLon, maxLon, minLat, maxLat } = req.body;
