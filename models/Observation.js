@@ -29,53 +29,42 @@ const observationSchema = new Schema({
     default: 'None'
   },
   specimen: { type: ObjectId, ref: 'Specimen' },
-  status: {
-    type: String,
-    enum: [
-      'Unknown',
-      'Colony/Community/Notched ear',
-      'Euthanized',
-      'House',
-      'Shelter',
-      'Stray/Wild'
-    ],
-    default: 'Unknown'
-  },
   pattern: {
     type: String,
     enum: [
-      'Unknown',
-      'Tabby/Tiger',
-      'Tortoiseshell',
-      'Black/Grey',
+      'Black/Gray',
+      'Tabby/Spotted',
       'Orange/White',
-      'Calico',
-      'Solid',
-      'Bicolor',
-      'Points',
-      'Spotted',
-      'Siamese'
+      'Tortoiseshell/Calico',
+      'Siamese',
+      'Unknown'
     ],
     default: 'Unknown'
   },
-  primaryColor: {
+  bicolor: {
     type: String,
-    enum: ['Unknown', 'Black', 'Brown', 'Buff/Tan', 'Gray', 'Orange', 'White'],
+    enum: ['Yes', 'No', 'Unknown'],
     default: 'Unknown'
   },
-  secondaryColor: {
+  longHair: {
     type: String,
-    enum: ['Unknown', 'Black', 'Brown', 'Buff/Tan', 'Gray', 'Orange', 'White'],
+    enum: ['Yes', 'No', 'Unknown'],
     default: 'Unknown'
   },
-  captureSide: {
-    type: [
-      {
-        type: String,
-        enum: ['Left', 'Right', 'Bottom', 'Top', 'Front', 'Rear']
-      }
-    ],
-    default: []
+  sex: {
+    type: String,
+    enum: ['Male', 'Female', 'Unknown'],
+    default: 'Unknown'
+  },
+  notched: {
+    type: String,
+    enum: ['Yes', 'No', 'Unknown'],
+    default: 'Unknown'
+  },
+  collar: {
+    type: String,
+    enum: ['Yes', 'No', 'Unknown'],
+    default: 'Unknown'
   },
   isCat: { type: Boolean, default: true },
   images: { type: [{ image_id: { type: String, required: true } }], required: true }
