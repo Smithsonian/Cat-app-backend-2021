@@ -9,6 +9,7 @@ const verifyToken = async (req, res, next) => {
     const { _id } = jwt.verify(token, process.env.JWT_SECRET);
     const foundUser = await User.findOne({ _id });
     if (!foundUser) throw new ErrorResponse('User does not exist', 404);
+    if (!foundUser.active) throw new ErrorResponse('User is not authorized to use the app', 401);
     req.user = foundUser;
     next();
   } catch (error) {

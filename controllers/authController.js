@@ -41,10 +41,33 @@ export const createUser = asyncHandler(async (req, res) => {
   });
 });
 
+export const toggleActive = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const foundUser = await User.findById(id);
+  if (!foundUser) throw new ErrorResponse('User does not exist', 404);
+  if (String(foundUser._id) === req.user.id) throw new ErrorResponse('Cannot modify own user', 403);
+  if (foundUser.role === 'master') throw new ErrorResponse('Cannot modify master user', 403);
+  foundUser.active = !foundUser.active;
+  const result = await foundUser.save();
+  res.status(200).json(result);
+});
+
+export const toggleRole = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const foundUser = await User.findById(id);
+  if (!foundUser) throw new ErrorResponse('User does not exist', 404);
+  if (String(foundUser._id) === req.user.id) throw new ErrorResponse('Cannot modify own user', 403);
+  if (foundUser.role === 'master') throw new ErrorResponse('Cannot modify master user', 403);
+  foundUser.role = foundUser.role === 'user' ? 'admin' : 'user';
+  const result = await foundUser.save();
+  res.status(200).json(result);
+});
+
 export const signIn = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const foundUser = await User.findOne({ email }).select('+password');
   if (!foundUser) throw new ErrorResponse('User does not exist', 404);
+  if (!foundUser.active) throw new ErrorResponse('User is not authorized to use the app', 401);
   const match = await bcrypt.compare(password, foundUser.password);
   if (!match) throw new ErrorResponse('Password is incorrect', 401);
   const token = jwt.sign({ _id: foundUser._id, userName: foundUser.name }, process.env.JWT_SECRET, {
