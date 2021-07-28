@@ -25,7 +25,7 @@ const observationSchema = new Schema({
   forReview: { type: Boolean, default: false },
   reasonReview: {
     type: String,
-    enum: ['None', 'Not cat', 'New cat', 'New match'],
+    enum: ['None', 'Not cat', 'New cat', 'New match', 'Unidentifiable'],
     default: 'None'
   },
   specimen: { type: ObjectId, ref: 'Specimen' },
@@ -53,7 +53,7 @@ const observationSchema = new Schema({
   },
   sex: {
     type: String,
-    enum: ['Male', 'Female', 'Unknown'],
+    enum: ['Male', 'Female/Neutered', 'Unknown'],
     default: 'Unknown'
   },
   notched: {
@@ -67,6 +67,7 @@ const observationSchema = new Schema({
     default: 'Unknown'
   },
   isCat: { type: Boolean, default: true },
+  notID: { type: Boolean, default: false },
   images: { type: [{ image_id: { type: String, required: true } }], required: true }
 });
 

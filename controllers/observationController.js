@@ -28,18 +28,38 @@ export const getCounters = asyncHandler(async (req, res) => {
 
 export const getObservations = asyncHandler(async (req, res) => {
   const { role } = req.user;
-  const { minLon, maxLon, minLat, maxLat } = req.body;
-  const reqQuery = { ...req.body };
-  const removeFields = ['minLon', 'maxLon', 'minLat', 'maxLat'];
-  removeFields.forEach(param => delete reqQuery[param]);
-
-  let queryStr = JSON.stringify(reqQuery).replace(
-    /\b(gt|gte|lt|lte|in|exists|geoWithin|centerSphere)\b/g,
-    match => `$${match}`
+  const { minLon, maxLon, minLat, maxLat, date_time_original } = req.body;
+  const reqBody = { ...req.body };
+  const removeFields = ['minLon', 'maxLon', 'minLat', 'maxLat', 'date_time_original'];
+  removeFields.forEach(param => delete reqBody[param]);
+  const rawQuery = JSON.parse(
+    JSON.stringify(reqBody).replace(
+      /\b(gt|gte|lt|lte|in|exists|geoWithin|centerSphere)\b/g,
+      match => `$${match}`
+    )
   );
+  let query = {};
+  const arrayOfQueryParams = [];
+  for (const param in rawQuery) {
+    if (rawQuery[param] !== 'Unknown') {
+      arrayOfQueryParams.push({ [param]: rawQuery[param] });
+    }
+  }
+
+  if (arrayOfQueryParams.length !== 0) {
+    query = { $or: arrayOfQueryParams };
+  }
+
+  if (date_time_original) {
+    for (const param in date_time_original) {
+      date_time_original[`$${param}`] = date_time_original[param];
+      delete date_time_original[param];
+    }
+    query = { ...query, date_time_original };
+  }
 
   if (role === 'user') {
-    queryStr = JSON.stringify({ ...JSON.parse(queryStr), isCat: true });
+    query = { ...query, isCat: true, notID: false };
   }
 
   if (minLon && maxLon && minLat && maxLon) {
@@ -63,9 +83,9 @@ export const getObservations = asyncHandler(async (req, res) => {
       }
     };
 
-    queryStr = JSON.stringify({ ...JSON.parse(queryStr), ...geo });
+    query = { ...query, ...geo };
   }
-  const observations = await Observation.find(JSON.parse(queryStr));
+  const observations = await Observation.find(query);
   res.status(200).json({ observations });
 });
 
@@ -159,7 +179,7 @@ export const createNewCat = asyncHandler(async (req, res) => {
   const { _id } = await Specimen.create({ matches: [id] });
   const updatedCat = await Observation.findOneAndUpdate(
     { _id: id },
-    { specimen: _id, forReview: true, reasonReview: 'New cat' },
+    { specimen: _id },
     { new: true }
   );
   res.status(200).json(updatedCat);
@@ -173,7 +193,7 @@ export const removeIdentification = asyncHandler(async (req, res) => {
     throw new ErrorResponse('There is no active identification for this observation', 401);
   const updatedCat = await Observation.findOneAndUpdate(
     { _id: id },
-    { $unset: { specimen: found.specimen }, forReview: false, reasonReview: 'None' },
+    { $unset: { specimen: found.specimen }, reasonReview: 'None' },
     { new: true }
   );
   await Specimen.findOneAndUpdate(

@@ -1,5 +1,6 @@
 import express from 'express';
 import morgan from 'morgan';
+import mongoSanitize from 'express-mongo-sanitize';
 import cors from 'cors';
 import 'dotenv/config.js';
 import './db/mongoose.js';
@@ -11,6 +12,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 app.use(express.json());
+app.use(mongoSanitize());
 app.set('etag', false);
 app.use(morgan('tiny'));
 app.use(cors({ origin: process.env.ORIGIN }));
