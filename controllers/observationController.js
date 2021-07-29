@@ -26,6 +26,46 @@ export const getCounters = asyncHandler(async (req, res) => {
   res.status(200).json({ counters: { deployments: deployments.length, total, forReview, notCat } });
 });
 
+export const getCandidates = asyncHandler(async (req, res) => {
+  const { coordinates, distance, ...params } = req.body;
+  const matchingCriteria = [];
+  for (const param in params) {
+    if (params[param] !== 'Unknown') {
+      matchingCriteria.push({ [`observations.${param}`]: params[param] });
+    }
+  }
+  if (!matchingCriteria.length) {
+    const defaultFilter = {
+      'observations.pattern': 'Unknown',
+      'observations.bicolor': 'Unknown',
+      'observations.longHair': 'Unknown'
+    };
+    matchingCriteria.push(defaultFilter);
+  }
+  const candidates = await Specimen.aggregate([
+    {
+      $lookup: {
+        from: 'observations',
+        localField: 'matches',
+        foreignField: '_id',
+        as: 'observations'
+      }
+    },
+    {
+      $match: {
+        $or: matchingCriteria,
+        'observations.location': {
+          $geoWithin: {
+            $centerSphere: [coordinates, distance / 6378.1]
+          }
+        }
+      }
+    },
+    { $unset: ['matches'] }
+  ]);
+  res.status(200).json(candidates);
+});
+
 export const getObservations = asyncHandler(async (req, res) => {
   const { role } = req.user;
   const { minLon, maxLon, minLat, maxLat, date_time_original } = req.body;
@@ -87,66 +127,6 @@ export const getObservations = asyncHandler(async (req, res) => {
   }
   const observations = await Observation.find(query);
   res.status(200).json({ observations });
-});
-
-export const getObservationsPage = asyncHandler(async (req, res) => {
-  const { minLon, maxLon, minLat, maxLat, forReview } = req.query;
-  const reqQuery = { ...req.query };
-
-  const removeFields = ['page', 'limit', 'minLon', 'maxLon', 'minLat', 'maxLat', 'forReview'];
-  removeFields.forEach(param => delete reqQuery[param]);
-
-  let queryStr = JSON.stringify(reqQuery).replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
-
-  if (minLon && maxLon && minLat && maxLon) {
-    const range = {
-      topLeft: [minLon, maxLat],
-      bottomRight: [maxLon, minLat],
-      topRight: [maxLon, maxLat],
-      bottomLeft: [minLon, minLat]
-    };
-
-    const geo = {
-      location: {
-        $geoWithin: {
-          $geometry: {
-            type: 'Polygon',
-            coordinates: [
-              [range.topLeft, range.topRight, range.bottomRight, range.bottomLeft, range.topLeft]
-            ]
-          }
-        }
-      }
-    };
-
-    queryStr = JSON.stringify({ ...JSON.parse(queryStr), ...geo });
-  }
-
-  queryStr = forReview
-    ? JSON.stringify({ ...JSON.parse(queryStr), forReview: true })
-    : JSON.stringify({ ...JSON.parse(queryStr), forReview: false });
-
-  const page = parseInt(req.query.page, 10) || 1;
-  const limit = parseInt(req.query.limit, 10) || 100;
-  const startAt = (page - 1) * limit;
-  const endAt = page * limit;
-  const total = await Observation.countDocuments();
-  const pagination = {};
-  if (startAt > 0) {
-    pagination.prev = {
-      page: page - 1,
-      limit
-    };
-  }
-  if (endAt <= total) {
-    pagination.next = {
-      page: page + 1,
-      limit
-    };
-  }
-  const query = Observation.find(JSON.parse(queryStr));
-  const observations = await query.skip(startAt).limit(limit);
-  res.status(200).json({ pagination, observations });
 });
 
 export const getSingleObservation = asyncHandler(async (req, res) => {
