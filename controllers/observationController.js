@@ -31,18 +31,23 @@ export const getCandidates = asyncHandler(async (req, res) => {
   const matchingCriteria = [];
   for (const param in params) {
     if (params[param] !== 'Unknown') {
-      matchingCriteria.push({ [`observations.${param}`]: params[param] });
+      matchingCriteria.push({
+        $or: [
+          { [`observations.${param}`]: params[param] },
+          { [`observations.${param}`]: 'Unknown' }
+        ]
+      });
     }
   }
   if (!matchingCriteria.length) {
-    const defaultFilter = {
-      'observations.pattern': 'Unknown',
-      'observations.bicolor': 'Unknown',
-      'observations.longHair': 'Unknown'
-    };
-    matchingCriteria.push(defaultFilter);
+    const defaultFilter = [
+      { 'observations.pattern': 'Unknown' },
+      { 'observations.bicolor': 'Unknown' },
+      { 'observations.longHair': 'Unknown' }
+    ];
+    defaultFilter.forEach(filter => matchingCriteria.push(filter));
   }
-  const candidates = await Specimen.aggregate([
+  const pipeline = [
     {
       $lookup: {
         from: 'observations',
@@ -53,24 +58,34 @@ export const getCandidates = asyncHandler(async (req, res) => {
     },
     {
       $match: {
-        $or: matchingCriteria,
+        $and: matchingCriteria,
         'observations.location': {
           $geoWithin: {
-            $centerSphere: [coordinates, distance / 6378.1]
+            $centerSphere: [coordinates, Number(distance) / 6378.1]
           }
         }
       }
     },
     { $unset: ['matches'] }
-  ]);
+  ];
+  const candidates = await Specimen.aggregate(pipeline);
   res.status(200).json(candidates);
 });
 
 export const getObservations = asyncHandler(async (req, res) => {
   const { role } = req.user;
-  const { minLon, maxLon, minLat, maxLat, date_time_original } = req.body;
+  const { minLon, maxLon, minLat, maxLat, date_time_original, project_id, deployment_id } =
+    req.body;
   const reqBody = { ...req.body };
-  const removeFields = ['minLon', 'maxLon', 'minLat', 'maxLat', 'date_time_original'];
+  const removeFields = [
+    'minLon',
+    'maxLon',
+    'minLat',
+    'maxLat',
+    'date_time_original',
+    'project_id',
+    'deployment_id'
+  ];
   removeFields.forEach(param => delete reqBody[param]);
   const rawQuery = JSON.parse(
     JSON.stringify(reqBody).replace(
@@ -87,7 +102,15 @@ export const getObservations = asyncHandler(async (req, res) => {
   }
 
   if (arrayOfQueryParams.length !== 0) {
-    query = { $or: arrayOfQueryParams };
+    query = { $and: arrayOfQueryParams };
+  }
+
+  if (project_id) {
+    query = { ...query, project_id };
+  }
+
+  if (deployment_id) {
+    query = { ...query, deployment_id };
   }
 
   if (date_time_original) {
@@ -163,6 +186,22 @@ export const createNewCat = asyncHandler(async (req, res) => {
     { new: true }
   );
   res.status(200).json(updatedCat);
+});
+
+export const addObservationToCat = asyncHandler(async (req, res) => {
+  const { catId, observationId } = req.params;
+  const cat = await Specimen.findById(catId);
+  if (!cat) throw new ErrorResponse('Cat does not exist', 404);
+  const observation = await Observation.findById(observationId);
+  if (!observation) throw new ErrorResponse('Observation does not exist', 404);
+  await cat.update({ $addToSet: { matches: observationId } });
+  await cat.save();
+  const updatedObservation = await Observation.findOneAndUpdate(
+    { _id: observationId },
+    { specimen: cat._id },
+    { new: true }
+  );
+  res.status(200).json(updatedObservation);
 });
 
 export const removeIdentification = asyncHandler(async (req, res) => {
