@@ -1,5 +1,7 @@
 const errorHandler = (err, req, res, next) => {
-  console.error(err.stack);
+  if (process.env.NODE_ENV !== 'production') {
+    console.error(err.stack);
+  }
   res.status(err.statusCode || 500).json({ error: err.message });
 };
 
