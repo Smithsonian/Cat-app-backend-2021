@@ -10,14 +10,13 @@ import './db/mongoose.js';
 const app = express();
 const port = process.env.PORT || 5000;
 
+app.set('etag', false);
 if (process.env.NODE_ENV !== 'production') {
   const morgan = await import('morgan');
   app.use(morgan.default('dev'));
 }
-
 app.use(express.json());
 app.use(mongoSanitize());
-app.set('etag', false);
 app.use(cors({ origin: process.env.ORIGIN }));
 app.use('/auth', authRouter);
 app.use('/observations', observationRouter);
