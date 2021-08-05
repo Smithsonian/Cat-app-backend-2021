@@ -2,6 +2,7 @@ import express from 'express';
 import {
   getObservations,
   getSingleObservation,
+  getCat,
   getCandidates,
   updateObservation,
   createNewCat,
@@ -19,6 +20,7 @@ observationRouter.get('/counters', verifyToken, getCounters);
 observationRouter.post('/candidates', verifyToken, getCandidates);
 observationRouter.post('/', verifyToken, getObservations);
 observationRouter.get('/:id', verifyToken, getSingleObservation);
+observationRouter.get('/cat/:id', verifyToken, getCat);
 observationRouter.patch('/:id', verifyToken, updateObservation);
 observationRouter.post('/:id/newcat', verifyToken, createNewCat);
 observationRouter.patch('/:observationId/cat/:catId', verifyToken, addObservationToCat);

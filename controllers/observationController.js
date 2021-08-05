@@ -158,6 +158,12 @@ export const getSingleObservation = asyncHandler(async (req, res) => {
   res.status(200).json({ observation });
 });
 
+export const getCat = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const cat = await Specimen.findById(id).populate('matches');
+  res.status(200).json({ cat });
+});
+
 export const updateObservation = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const filter = { _id: id };
