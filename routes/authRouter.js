@@ -5,7 +5,8 @@ import {
   approveSession,
   getUsers,
   toggleActive,
-  toggleRole
+  toggleRole,
+  changePassword
 } from '../controllers/authController.js';
 import verifyToken from '../middlewares/verifyToken.js';
 import isAdmin from '../middlewares/isAdmin.js';
@@ -17,6 +18,7 @@ const authRouter = express.Router();
 authRouter.post('/create-user', verifyToken, isAdmin, validateJOI(signUpBody), createUser);
 authRouter.patch('/status/:id', verifyToken, isAdmin, toggleActive);
 authRouter.patch('/role/:id', verifyToken, isAdmin, toggleRole);
+authRouter.patch('/password/:id', verifyToken, isAdmin, changePassword);
 authRouter.post('/signin', validateJOI(signInBody), signIn);
 authRouter.get('/users', verifyToken, isAdmin, getUsers);
 authRouter.get('/verify-session', verifyToken, approveSession);
